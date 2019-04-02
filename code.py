@@ -46,7 +46,7 @@ splash = displayio.Group()
 board.DISPLAY.show(splash)
 #Image database, all images can be referenced from this list
 images = ["media/corn.bmp", "media/iigs.bmp", "media/oregon.bmp",
-          "media/macos-9.bmp"]
+          "media/macos-9.bmp", "media/organic_start.bmp"]
 
 #---------------------------------------------------
 # Audio Setup
@@ -59,10 +59,11 @@ length = 8000 // frequency_hz
 sine_wave = array.array("H", [0] * length)
 for i in range(length):
     sine_wave[i] = int((1 + math.sin(math.pi * 2 * i / length)) * tone_volume * (2 ** 15 - 1))
-sine_wave_sample = audioio.RawSample(sine_wave)
 
+sine_wave_sample = audioio.RawSample(sine_wave)
 # Setup audio out pin
 audio = audioio.AudioOut(board.A0)
+
 
 #------------------------------------------------------
 # Functions
@@ -82,6 +83,31 @@ def init():
   board.DISPLAY.show(splash)
   return splash
 
+#--------------------------------------------------
+# Audio Functions
+#--------------------------------------------------
+
+def load_wav(name):
+    """
+    Load a WAV audio file into RAM.
+    @param name: partial file name string, complete name will be built on
+                 this, e.g. passing 'foo' will load file 'foo.wav'.
+    @return WAV buffer that can be passed to play_wav() below.
+    """
+    return audioio.WaveFile(open(name + '.wav', 'rb'))
+
+def play_wav(wav):
+    """
+    Play a WAV file previously loaded with load_wav(). This function
+    "blocks," i.e. does not return until the sound is finished playing.
+    @param wav: WAV buffer previously returned by load_wav() function.
+    """
+    audio.play(wav)      # Begin WAV playback
+    while audio.playing: # Keep idle here as long as it plays
+        pass
+    time.sleep(1)        # A small pause avoids repeated triggering
+
+STARTUP_WAV = load_wav('media\macos-10-1') # Startup sound
 # Function for beeping, usage: 'beep(3)' will beep 3x
 def beep(count):
     for _ in range(count):
@@ -89,6 +115,10 @@ def beep(count):
         time.sleep(0.1)
         audio.stop()
         time.sleep(0.05)
+
+#-----------------------------------------------------------
+# Graphic functions
+#-----------------------------------------------------------
 
 # Function for writing text to the screen
 def draw_text(txt,x_pos,y_pos,txt_scale):
@@ -114,12 +144,16 @@ def show_image(filename):
 #------------------------------------------------------------------------------------
 
 init()
+show_image(images[3])
+play_wav(STARTUP_WAV)
 board.DISPLAY.show(splash)
 time.sleep(1)
-show_image(images[2])  # waiting display
+show_image(images[4])  # waiting display
 time.sleep(1)
 draw_text("Organic\n Trail",10,30,2)
 time.sleep(1)
+# This will blank out the display otherwise it will repeat the previous image loaded
+splash = displayio.Group()
 board.DISPLAY.show(splash)
 draw_text("Welcome to \n Organic Trail! \n To continue, \n press the right \n pad.",10,50,1)
 loop1 = True
