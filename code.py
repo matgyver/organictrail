@@ -22,8 +22,8 @@ import touchio
 import digitalio
 import analogio
 import os
-import busio
-import adafruit_lis3dh
+#import busio
+#import adafruit_lis3dh
 
 #-------------------------------------------
 # Setup for HW
@@ -42,13 +42,14 @@ board.DISPLAY.show(splash)
 
 # Image Database
 #Image database, all images can be referenced from this list
-images_db = ["media/no_light.bmp", "media/welcome.bmp", "media/oregon.bmp", "media/macos-8.bmp", "media/organic_start.bmp"]
+images_db = ["media/no_light.bmp", "media/welcome.bmp", "media/9seed.bmp", "media/macos-8.bmp",
+            "media/organic_start.bmp", "media/2years.bmp", "media/3bankloan.bmp", "media/10start.bmp"]
 
 #images_db = list(filter(lambda x: x.endswith("bmp"), os.listdir("/")))
 print(images_db)
 
 #Global Fade Timer
-fade_timer = 0.05
+fade_timer = 0.01
 
 #---------------------------------------------------
 # Audio Setup
@@ -65,9 +66,10 @@ quarter_note = whole_note / 4
 dotted_quarter_note = quarter_note * 1.5
 eighth_note = whole_note / 8
 
-A3 = 220
-Bb3 = 233
-B3 = 247
+# List of notes and their tone in Hz
+#A3 = 220
+#Bb3 = 233
+#B3 = 247
 C4 = 262
 Db4 = 277
 D4 = 294
@@ -81,13 +83,13 @@ A4 = 440
 Bb4 = 466
 B4 = 493
 C5 = 523
-Db5 = 554
-D5 = 587
-Eb5 = 622
-E5 = 659
-F5 = 698
-Gb5 = 740
-G5 = 784
+#Db5 = 554
+#D5 = 587
+#Eb5 = 622
+#E5 = 659
+#F5 = 698
+#Gb5 = 740
+#G5 = 784
 
 #----------------------------------------------------
 # Touch sensors
@@ -124,14 +126,14 @@ led.direction = digitalio.Direction.OUTPUT
 #----------------------------------------------------
 # LIS3DH Sensor
 #----------------------------------------------------
-SENSITIVITY = 5   # reading in Z direction to trigger, adjustable
+#SENSITIVITY = 5   # reading in Z direction to trigger, adjustable
 
 # Set up accelerometer on I2C bus, 4G range:
-I2C = busio.I2C(board.SCL, board.SDA)
+#I2C = busio.I2C(board.SCL, board.SDA)
 
-ACCEL = adafruit_lis3dh.LIS3DH_I2C(I2C, address=0x18)
+#ACCEL = adafruit_lis3dh.LIS3DH_I2C(I2C, address=0x18)
 
-ACCEL.range = adafruit_lis3dh.RANGE_4_G
+#ACCEL.range = adafruit_lis3dh.RANGE_4_G
 
 #i = random.randint(0, (len(images)-1))  # initial image is randomly selected
 
@@ -141,7 +143,7 @@ ACCEL.range = adafruit_lis3dh.RANGE_4_G
 
 # Initilize function for first time power on
 def init():
-  NP.fill(RED)
+  NP.fill(SKYBLUE)
   NP.show()
   print("Booting up Hallowing...")
   time.sleep(1)
@@ -166,6 +168,9 @@ def load_wav(name):
     """
     return audioio.WaveFile(open(name + '.wav', 'rb'))
 
+STARTUP_WAV = load_wav('media\macos-10-1') # Startup sound
+CASH = load_wav('media\cash')
+
 def play_wav(wav):
     """
     Play a WAV file previously loaded with load_wav(). This function
@@ -177,27 +182,18 @@ def play_wav(wav):
         pass
     time.sleep(1)        # A small pause avoids repeated triggering
 
-STARTUP_WAV = load_wav('media\macos-10-1') # Startup sound
 # Function for beeping, usage: 'beep(3)' will beep 3x
 
 def play_tone(freq,vol,note_length):
-    tone_volume = vol  # Increase this to increase the volume of the tone.
     frequency_hz = freq  # Set this to the Hz of the tone you want to generate.
     length = 8000 // frequency_hz
     sine_wave = array.array("H", [0] * length)
     for i in range(length):
-        sine_wave[i] = int((1 + math.sin(math.pi * 2 * i / length)) * tone_volume * (2 ** 15 - 1))
+        sine_wave[i] = int((1 + math.sin(math.pi * 2 * i / length)) * vol * (2 ** 15 - 1))
     sine_wave_sample = audioio.RawSample(sine_wave)
     audio.play(sine_wave_sample,loop=True)
     time.sleep(note_length)
     audio.stop()
-
-def beep(count):
-    for _ in range(count):
-        audio.play(sine_wave_sample, loop=True)
-        time.sleep(0.1)
-        audio.stop()
-        time.sleep(0.05)
 
 def play_song(song_number,vol):
     """
@@ -261,7 +257,8 @@ def fade_up(fade_time):
 def fade_down(fade_time):
     for i in range(100, -1, -1):
             board.DISPLAY.brightness = 0.01 * i
-            time.sleep(0.005)  # default (0.005)
+            time.sleep(fade_time)  # default (0.005)
+
 
 # Function for writing text to the screen
 """
@@ -285,33 +282,70 @@ def show_image(filename):
     board.DISPLAY.wait_for_frame()
     fade_up(fade_timer)
 
+def wait_for_touch():
+    loop1 = True
+    while loop1:
+        if forward_button.value:
+            print("Button touched!")
+            loop1 = False
+
 #------------------------------------------------------------------------------------
 init()
 show_image(images_db[3])
 play_wav(STARTUP_WAV)
 fade_down(fade_timer)
 splash.pop()
+NP.fill(BLUE)
+NP.show()
 show_image(images_db[4])  # waiting display
 #play_tone(G4,1,whole_note)
+NP.fill(GREEN)
+NP.show()
 play_song(2,0.3)
 time.sleep(1)
 fade_down(fade_timer)
 splash.pop()
+NP.fill(SKYBLUE)
+NP.show()
 show_image(images_db[1])  # waiting display
-loop1 = True
-while loop1:
-    if forward_button.value:
-        print("Button touched!")
-        loop1 = False
-fade_down(0.05)
+wait_for_touch()
+fade_down(fade_timer)
 splash.pop()
-show_image(images_db[0])
-if LIGHT_SENSE.value < 10000 :
-    print("Current light value is:",LIGHT_SENSE.value)
-    print("There is not enough light")
-else:
-    print("Current light value is:",LIGHT_SENSE.value)
-    print("There enough light!")
+show_image(images_db[5])  # waiting display
+wait_for_touch()
+fade_down(fade_timer)
+splash.pop()
+show_image(images_db[6])# waiting display
+play_wav(CASH)
+wait_for_touch()
+fade_down(fade_timer)
+splash.pop()
+show_image(images_db[7])# waiting display
+play_wav(CASH)
+wait_for_touch()
+fade_down(fade_timer)
+splash.pop()
+while True:
+    if LIGHT_SENSE.value < 10000 :
+        NP.fill(RED)
+        NP.show()
+        show_image(images_db[0])
+        time.sleep(3)
+        fade_down(fade_timer)
+        splash.pop()
+        print("Current light value is:",LIGHT_SENSE.value)
+        print("There is not enough light")
+        time.sleep(1)
+    else:
+        NP.fill(SKYBLUE)
+        NP.show()
+        show_image(images_db[2])
+        time.sleep(3)
+        fade_down(fade_timer)
+        splash.pop()
+        print("Current light value is:",LIGHT_SENSE.value)
+        print("There enough light!")
+        time.sleep(1)
 
 """
 while True:
