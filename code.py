@@ -288,6 +288,27 @@ def wait_for_touch():
         if forward_button.value:
             print("Button touched!")
             loop1 = False
+def check_light():
+    if LIGHT_SENSE.value < 10000 :
+        NP.fill(RED)
+        NP.show()
+        show_image(images_db[0])
+        time.sleep(3)
+        fade_down(fade_timer)
+        splash.pop()
+        print("Current light value is:",LIGHT_SENSE.value)
+        print("There is not enough light")
+        time.sleep(1)
+    else:
+        NP.fill(SKYBLUE)
+        NP.show()
+        show_image(images_db[2])
+        time.sleep(3)
+        fade_down(fade_timer)
+        splash.pop()
+        print("Current light value is:",LIGHT_SENSE.value)
+        print("There enough light!")
+        time.sleep(1)
 
 #------------------------------------------------------------------------------------
 init()
@@ -326,63 +347,4 @@ wait_for_touch()
 fade_down(fade_timer)
 splash.pop()
 while True:
-    if LIGHT_SENSE.value < 10000 :
-        NP.fill(RED)
-        NP.show()
-        show_image(images_db[0])
-        time.sleep(3)
-        fade_down(fade_timer)
-        splash.pop()
-        print("Current light value is:",LIGHT_SENSE.value)
-        print("There is not enough light")
-        time.sleep(1)
-    else:
-        NP.fill(SKYBLUE)
-        NP.show()
-        show_image(images_db[2])
-        time.sleep(3)
-        fade_down(fade_timer)
-        splash.pop()
-        print("Current light value is:",LIGHT_SENSE.value)
-        print("There enough light!")
-        time.sleep(1)
-
-"""
-while True:
-    shaken = False
-    with open(images[i], "rb") as f:
-        print("Image load {}".format(images[i]))
-        try:
-            odb = displayio.OnDiskBitmap(f)
-        except ValueError:
-            print("Image unsupported {}".format(images[i]))
-            del images[i]
-            continue
-        face = displayio.TileGrid(odb, pixel_shader=displayio.ColorConverter(),
-                                x=0,y=0)
-        splash.append(face)
-        # Wait for the image to load.
-        board.DISPLAY.wait_for_frame()
-
-        # Fade up the backlight
-        fade_up(0.05)
-        # Wait forever
-        while not shaken:
-            try:
-                ACCEL_Z = ACCEL.acceleration[2]  # Read Z axis acceleration
-            except IOError:
-                pass
-            # print(ACCEL_Z)  # uncomment to see the accelerometer z reading
-            if ACCEL_Z > SENSITIVITY:
-                shaken = True
-
-        # Fade down the backlight
-        fade_down(0.05)
-
-        splash.pop()
-
-        i = random.randint(0, (len(images)-1))  # pick a new random image
-        print("shaken")
-        faceup = False
-        i %= len(images) - 1
-"""
+    check_light()
