@@ -12,7 +12,7 @@
 
 import board, neopixel, displayio
 
-import array
+#import array
 import math
 import time
 import random
@@ -22,12 +22,6 @@ import touchio
 import digitalio
 import analogio
 import os
-#import busio
-#import adafruit_lis3dh
-
-#-------------------------------------------
-# Setup for HW
-#-------------------------------------------
 
 #-------------------------------------------
 # Graphics Setup
@@ -42,14 +36,22 @@ board.DISPLAY.show(splash)
 
 # Image Database
 #Image database, all images can be referenced from this list
-images_db = ["media/no_light.bmp", "media/welcome.bmp", "media/9seed.bmp", "media/macos-8.bmp",
-            "media/organic_start.bmp", "media/2years.bmp", "media/3bankloan.bmp", "media/10start.bmp"]
-
-#images_db = list(filter(lambda x: x.endswith("bmp"), os.listdir("/")))
+#images_db = ["media/no_light.bmp", "media/welcome.bmp", "media/9seed.bmp", "media/macos-8.bmp",
+ #           "media/organic_start.bmp", "media/2years.bmp", "media/3bankloan.bmp", "media/10start.bmp"]
+images_db = list(filter(lambda x: x.endswith("bmp"), sorted(os.listdir("/media"))))
+#images_intro = list(filter(lambda x: x.endswith("bmp"), sorted(os.listdir("/media/intro"))))
+#images_organic = list(filter(lambda x: x.endswith("bmp"), sorted(os.listdir("/media/organic"))))
+#images_corn = list(filter(lambda x: x.endswith("bmp"), sorted(os.listdir("/media/organic"))))
+#images_corn = list(filter(lambda x: x.endswith("bmp"), sorted(os.listdir("/media/organic"))))
 print(images_db)
+#print(images_intro)
+#print(images_organic)
 
 #Global Fade Timer
 fade_timer = 0.01
+
+#Light Threshold
+light_threshold = 15000
 
 #---------------------------------------------------
 # Audio Setup
@@ -59,30 +61,30 @@ fade_timer = 0.01
 audio = audioio.AudioOut(board.A0)
 
 # set up time signature
-whole_note = 1.5  # adjust this to change tempo of everything
+#whole_note = 1.5  # adjust this to change tempo of everything
 # these notes are fractions of the whole note
-half_note = whole_note / 2
-quarter_note = whole_note / 4
-dotted_quarter_note = quarter_note * 1.5
-eighth_note = whole_note / 8
+#half_note = whole_note / 2
+#quarter_note = whole_note / 4
+#dotted_quarter_note = quarter_note * 1.5
+#eighth_note = whole_note / 8
 
 # List of notes and their tone in Hz
 #A3 = 220
 #Bb3 = 233
 #B3 = 247
-C4 = 262
-Db4 = 277
-D4 = 294
-Eb4 = 311
-E4 = 330
-F4 = 349
-Gb4 = 370
-G4 = 392
-Ab4 = 415
-A4 = 440
-Bb4 = 466
-B4 = 493
-C5 = 523
+#C4 = 262
+#Db4 = 277
+#D4 = 294
+#Eb4 = 311
+#E4 = 330
+#F4 = 349
+#Gb4 = 370
+#G4 = 392
+#Ab4 = 415
+#A4 = 440
+#Bb4 = 466
+#B4 = 493
+#C5 = 523
 #Db5 = 554
 #D5 = 587
 #Eb5 = 622
@@ -116,26 +118,12 @@ BLACK = (0,0,0)
 #D13 LED and Light Sensor
 #----------------------------------------------------
 # Setup LED and Light Sensor pins
-LED_PIN = board.D13  # Pin number for the board's built in LED.
+#LED_PIN = board.D13  # Pin number for the board's built in LED.
 LIGHT_SENSE = analogio.AnalogIn(board.A1)   # Light sensor is connected to A1 on Hallowing
 
 # Setup digital output for LED:
-led = digitalio.DigitalInOut(LED_PIN)
-led.direction = digitalio.Direction.OUTPUT
-
-#----------------------------------------------------
-# LIS3DH Sensor
-#----------------------------------------------------
-#SENSITIVITY = 5   # reading in Z direction to trigger, adjustable
-
-# Set up accelerometer on I2C bus, 4G range:
-#I2C = busio.I2C(board.SCL, board.SDA)
-
-#ACCEL = adafruit_lis3dh.LIS3DH_I2C(I2C, address=0x18)
-
-#ACCEL.range = adafruit_lis3dh.RANGE_4_G
-
-#i = random.randint(0, (len(images)-1))  # initial image is randomly selected
+#led = digitalio.DigitalInOut(LED_PIN)
+#led.direction = digitalio.Direction.OUTPUT
 
 #------------------------------------------------------
 # Functions
@@ -169,7 +157,7 @@ def load_wav(name):
     return audioio.WaveFile(open(name + '.wav', 'rb'))
 
 STARTUP_WAV = load_wav('media\macos-10-1') # Startup sound
-CASH = load_wav('media\cash')
+#CASH = load_wav('media\cash')
 
 def play_wav(wav):
     """
@@ -183,7 +171,7 @@ def play_wav(wav):
     time.sleep(1)        # A small pause avoids repeated triggering
 
 # Function for beeping, usage: 'beep(3)' will beep 3x
-
+'''
 def play_tone(freq,vol,note_length):
     frequency_hz = freq  # Set this to the Hz of the tone you want to generate.
     length = 8000 // frequency_hz
@@ -194,27 +182,11 @@ def play_tone(freq,vol,note_length):
     audio.play(sine_wave_sample,loop=True)
     time.sleep(note_length)
     audio.stop()
+'''
 
+'''
 def play_song(song_number,vol):
-    """
-    if song_number == 1:
-        # jingle bells
-        jingle_bells_song = [
-            [E4, vol, quarter_note],
-            [E4, vol, quarter_note],
-            [E4, vol, half_note],
-            [E4, vol, quarter_note],
-            [E4, vol, quarter_note],
-            [E4, vol, half_note],
-            [E4, vol, quarter_note],
-            [G4, vol, quarter_note],
-            [C4, vol, dotted_quarter_note],
-            [D4, vol, eighth_note],
-            [E4, vol, whole_note],
-        ]
-        for i in jingle_bells_song:
-            play_tone(i[0],i[1],i[2])
-    """
+
     if song_number == 2:
         # Home on the Range
         home_range_song = [
@@ -242,7 +214,7 @@ def play_song(song_number,vol):
         ]
         for i in home_range_song:
             play_tone(i[0],vol,i[1])
-
+'''
 #-----------------------------------------------------------
 # Graphic functions
 #-----------------------------------------------------------
@@ -259,21 +231,12 @@ def fade_down(fade_time):
             board.DISPLAY.brightness = 0.01 * i
             time.sleep(fade_time)  # default (0.005)
 
-
 # Function for writing text to the screen
-"""
-def draw_text(txt,x_pos,y_pos,txt_scale):
-  ta = label.Label(terminalio.FONT, text=txt)
-  ta.scale=txt_scale
-  ta.x=x_pos
-  ta.y=y_pos
-  board.DISPLAY.show(ta)
-  board.DISPLAY.wait_for_frame()
-  fade_up(0.005)
-  return ta
-"""
+
 # Function for displaying images on HalloWing TFT screen
 def show_image(filename):
+    filename = "/media/" + filename
+    print(filename)
     image_file = open(filename, "rb")
     odb = displayio.OnDiskBitmap(image_file)
     face = displayio.TileGrid(odb, pixel_shader=displayio.ColorConverter(), x=0,y=0)
@@ -288,63 +251,134 @@ def wait_for_touch():
         if forward_button.value:
             print("Button touched!")
             loop1 = False
-def check_light():
-    if LIGHT_SENSE.value < 10000 :
-        NP.fill(RED)
-        NP.show()
-        show_image(images_db[0])
-        time.sleep(3)
+
+def touch_choice(scene_right,scene_left):
+    loop1 = True
+    while loop1:
+        if forward_button.value:
+            print("Right choice made")
+            choice = "Right"
+            fade_down(fade_timer)
+            splash.pop()
+            show_image(images_db[scene_right])  # waiting display
+            wait_for_touch()
+            loop1 = False
+        if back_button.value:
+            print("Left choice made")
+            choice = "Left"
+            fade_down(fade_timer)
+            splash.pop()
+            show_image(images_db[scene_left])  # waiting display
+            wait_for_touch()
+            loop1 = False
+    return choice
+
+def grow_scene(scene):
+    loop1 = True
+    i = 0
+    while loop1:
+        if LIGHT_SENSE.value < light_threshold :
+            NP.fill(RED)
+            NP.show()
+            show_image("no_light.bmp")
+            time.sleep(1)
+            fade_down(fade_timer)
+            splash.pop()
+            print("Current light value is:",LIGHT_SENSE.value)
+            print("There is not enough light")
+            time.sleep(1)
+        else:
+            NP.fill(SKYBLUE)
+            NP.show()
+            show_image(scene)
+            time.sleep(1)
+            fade_down(fade_timer)
+            splash.pop()
+            print("Current light value is:",LIGHT_SENSE.value)
+            print("There enough light!")
+            i += 1
+            time.sleep(1)
+        if i == 5:
+            loop1 = False
+
+def scene_player(start,end):
+    for i in range(start,end,1):
+        show_image(images_db[i])  # waiting display
+        wait_for_touch()
         fade_down(fade_timer)
         splash.pop()
-        print("Current light value is:",LIGHT_SENSE.value)
-        print("There is not enough light")
-        time.sleep(1)
+
+def organic_corn_scene():
+    fade_down(fade_timer)
+    splash.pop()
+    show_image(images_db[30])  # waiting display
+    choice = touch_choice(32,31)
+    if choice == "Right":
+        insurance = False
     else:
-        NP.fill(SKYBLUE)
-        NP.show()
-        show_image(images_db[2])
-        time.sleep(3)
+        insurance = True
+    print("Insurance is ",insurance)
+    fade_down(fade_timer)
+    splash.pop()
+    show_image(images_db[33])  # waiting display
+    wait_for_touch()
+    fade_down(fade_timer)
+    splash.pop()
+    grow_scene("corn_growing.bmp")
+
+    for i in range(36,45 ,1):
+        show_image(images_db[i])  # waiting display
+        wait_for_touch()
         fade_down(fade_timer)
         splash.pop()
-        print("Current light value is:",LIGHT_SENSE.value)
-        print("There enough light!")
-        time.sleep(1)
+
+def organic_soybean_scene():
+    for i in range(2,20,1):
+        show_image(images_db[i])  # waiting display
+        wait_for_touch()
+        fade_down(fade_timer)
+        splash.pop()
 
 #------------------------------------------------------------------------------------
 init()
-show_image(images_db[3])
-play_wav(STARTUP_WAV)
-fade_down(fade_timer)
-splash.pop()
+#show_image(images_db[0])
+#play_wav(STARTUP_WAV)
+#fade_down(fade_timer)
+#splash.pop()
 NP.fill(BLUE)
 NP.show()
-show_image(images_db[4])  # waiting display
+show_image(images_db[1])  # waiting display
 #play_tone(G4,1,whole_note)
 NP.fill(GREEN)
 NP.show()
-play_song(2,0.3)
+#play_song(2,0.3)
 time.sleep(1)
 fade_down(fade_timer)
 splash.pop()
 NP.fill(SKYBLUE)
 NP.show()
-show_image(images_db[1])  # waiting display
-wait_for_touch()
+#scene_player(2,20)
+show_image(images_db[20])  # waiting display
+choice = touch_choice(22,21)
+if choice == "Right":
+    farm = "Traditional"
+else:
+    farm = "Organic"
+
+print("The decision made is",farm)
 fade_down(fade_timer)
 splash.pop()
-show_image(images_db[5])  # waiting display
-wait_for_touch()
-fade_down(fade_timer)
-splash.pop()
-show_image(images_db[6])# waiting display
-play_wav(CASH)
-wait_for_touch()
-fade_down(fade_timer)
-splash.pop()
-show_image(images_db[7])# waiting display
-play_wav(CASH)
-wait_for_touch()
-fade_down(fade_timer)
-splash.pop()
-while True:
-    check_light()
+scene_player(23,28)
+show_image(images_db[29])  # waiting display
+choice = touch_choice(31,30)
+if choice == "Right":
+    crop = "Soybean"
+else:
+    crop = "Corn"
+print("The decision made is",crop)
+
+if crop == "Corn" and farm == "Organic":
+    organic_corn_scene()
+
+if crop == "Soybean" and farm == "Organic":
+    organic_soybean_scene()
